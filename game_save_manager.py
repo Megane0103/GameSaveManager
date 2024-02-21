@@ -2,7 +2,8 @@ import os
 import sys
 import json
 import shutil
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton, QLineEdit, QFileDialog, QHeaderView
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton, QLineEdit, QFileDialog, QHeaderView, QInputDialog, QMessageBox
+
 
 class GameSaveManager(QMainWindow):
     def __init__(self):
@@ -10,6 +11,7 @@ class GameSaveManager(QMainWindow):
         self.setWindowTitle("Game Save Manager")
 
         self.save_paths = []
+        self.dark_mode = False
 
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
@@ -48,8 +50,6 @@ class GameSaveManager(QMainWindow):
         self.add_button.clicked.connect(self.add_save_path)
         path_entry_layout.addWidget(self.add_button)
 
-        
-
         # Button section
         button_layout = QHBoxLayout()
         main_layout.addLayout(button_layout)
@@ -70,6 +70,11 @@ class GameSaveManager(QMainWindow):
         self.copy_button = QPushButton("Backup")
         self.copy_button.clicked.connect(self.copy_folders)
         button_layout.addWidget(self.copy_button)
+
+        # Dark mode toggle button
+        self.dark_mode_button = QPushButton("Dark Mode: Off")
+        self.dark_mode_button.clicked.connect(self.toggle_dark_mode)
+        button_layout.addWidget(self.dark_mode_button)
 
         # Load paths from JSON file
         self.load_paths_from_json()
@@ -100,14 +105,17 @@ class GameSaveManager(QMainWindow):
         self.save_path_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def add_save_path(self):
-        path = QFileDialog.getExistingDirectory(self, "Select Directory", directory=os.getenv('APPDATA'))
-        if path and path not in [item["path"] for item in self.save_paths]:
-            game_name = ""
-            if self.game_name_entry.text():
-                game_name = self.game_name_entry.text()
-            self.save_paths.append({"path": path, "game_name": game_name})
-            self.save_to_json()
-            self.update_table()
+        game_name, ok = QInputDialog.getText(self, "Enter Game Name", "Game Name:")
+        if ok:
+            path = QFileDialog.getExistingDirectory(self, "Select Directory", directory=os.getenv('APPDATA'))
+            if path and path not in [item["path"] for item in self.save_paths]:
+                self.save_paths.append({"path": path, "game_name": game_name})
+                self.save_to_json()
+                self.update_table()
+        else:
+            QMessageBox.warning(self, "Warning", "Game name is required.")
+
+
 
     def save_path_manually(self):
         path = self.manual_path_entry.text()
@@ -144,20 +152,31 @@ class GameSaveManager(QMainWindow):
         if destination_folder:
             for path_info in self.save_paths:
                 source_path = path_info["path"]
-                destination_path = os.path.join(destination_folder, os.path.basename(source_path))  
+                destination_path = os.path.join(destination_folder, os.path.basename(source_path))
                 try:
                     if os.path.exists(destination_path):
-                        shutil.rmtree(destination_path)  
+                        shutil.rmtree(destination_path)
                     shutil.copytree(source_path, destination_path)
                 except Exception as e:
                     print(f"Failed to copy '{source_path}' to '{destination_path}': {e}")
 
+    def toggle_dark_mode(self):
+        if self.dark_mode:
+            self.setStyleSheet("")
+            self.dark_mode_button.setText("Dark Mode: Off")
+        else:
+            self.setStyleSheet("background-color: #333; color: #FFF")
+            self.dark_mode_button.setText("Dark Mode: On")
+        self.dark_mode = not self.dark_mode
+
+
 def main():
     app = QApplication(sys.argv)
     window = GameSaveManager()
-    window.resize(1600, 900)
+    window.resize(800, 600)  # Initial size
     window.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
