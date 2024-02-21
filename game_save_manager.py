@@ -4,7 +4,6 @@ import json
 import shutil
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton, QLineEdit, QFileDialog, QHeaderView, QInputDialog, QMessageBox
 
-
 class GameSaveManager(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -115,8 +114,6 @@ class GameSaveManager(QMainWindow):
         else:
             QMessageBox.warning(self, "Warning", "Game name is required.")
 
-
-
     def save_path_manually(self):
         path = self.manual_path_entry.text()
         game_name = self.game_name_entry.text()
@@ -167,16 +164,37 @@ class GameSaveManager(QMainWindow):
         else:
             self.setStyleSheet("background-color: #333; color: #FFF")
             self.dark_mode_button.setText("Dark Mode: On")
+            # Set stylesheet for the table in dark mode
+            self.save_path_table.setStyleSheet("""
+                QTableWidget {
+                    background-color: #333;
+                    color: #FFF;
+                    alternate-background-color: #444;
+                    border: 1px solid #FFF;
+                    border-radius: 5px;
+                }
+                QTableWidget::item {
+                    padding: 5px;
+                    border-bottom: 1px solid #FFF;
+                }
+                QTableWidget::item:selected {
+                    background-color: #666;
+                    color: #FFF;
+                }
+                QHeaderView::section {
+                    background-color: #222;
+                    color: #FFF;
+                    padding: 5px;
+                }
+            """)
         self.dark_mode = not self.dark_mode
-
 
 def main():
     app = QApplication(sys.argv)
     window = GameSaveManager()
-    window.resize(800, 600)  # Initial size
+    window.resize(1600, 900)  # Initial size
     window.show()
     sys.exit(app.exec_())
-
 
 if __name__ == "__main__":
     main()
