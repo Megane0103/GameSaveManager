@@ -3,6 +3,7 @@ import sys
 import json
 import shutil
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton, QLineEdit, QFileDialog, QHeaderView, QInputDialog, QMessageBox
+from PyQt5.QtCore import Qt
 
 class GameSaveManager(QMainWindow):
     def __init__(self):
@@ -12,11 +13,33 @@ class GameSaveManager(QMainWindow):
         self.save_paths = []
         self.dark_mode = False
 
+        # Set window flags to include FramelessWindowHint
+        self.setWindowFlags(Qt.FramelessWindowHint)
+
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
 
         main_layout = QVBoxLayout()
         main_widget.setLayout(main_layout)
+
+        # Title bar widget
+        title_bar = QWidget()
+        title_bar.setObjectName("titleBar")
+        title_bar_layout = QHBoxLayout(title_bar)
+        title_bar_layout.setContentsMargins(10, 0, 0, 0)
+
+        # Title label
+        title_label = QLabel("Game Save Manager")
+        title_label.setObjectName("titleLabel")
+        title_bar_layout.addWidget(title_label)
+
+        # Dark mode toggle button
+        self.dark_mode_button = QPushButton("Dark Mode: Off")
+        self.dark_mode_button.setObjectName("darkModeButton")
+        self.dark_mode_button.clicked.connect(self.toggle_dark_mode)
+        title_bar_layout.addWidget(self.dark_mode_button)
+
+        main_layout.addWidget(title_bar)
 
         # Save paths section
         self.save_path_label = QLabel("Saved Paths:")
@@ -69,11 +92,6 @@ class GameSaveManager(QMainWindow):
         self.copy_button = QPushButton("Backup")
         self.copy_button.clicked.connect(self.copy_folders)
         button_layout.addWidget(self.copy_button)
-
-        # Dark mode toggle button
-        self.dark_mode_button = QPushButton("Dark Mode: Off")
-        self.dark_mode_button.clicked.connect(self.toggle_dark_mode)
-        button_layout.addWidget(self.dark_mode_button)
 
         # Load paths from JSON file
         self.load_paths_from_json()
@@ -162,10 +180,29 @@ class GameSaveManager(QMainWindow):
             self.setStyleSheet("")
             self.dark_mode_button.setText("Dark Mode: Off")
         else:
-            self.setStyleSheet("background-color: #333; color: #FFF")
-            self.dark_mode_button.setText("Dark Mode: On")
-            # Set stylesheet for the table in dark mode
-            self.save_path_table.setStyleSheet("""
+            self.setStyleSheet("""
+                QMainWindow {
+                    background-color: #333;
+                }
+                #titleBar {
+                    background-color: #222;
+                    border-bottom: 1px solid #444;
+                }
+                #titleLabel {
+                    color: #FFF;
+                    font-size: 16px;
+                }
+                #darkModeButton {
+                    color: #FFF;
+                    background-color: #333;
+                    border: 1px solid #FFF;
+                    border-radius: 5px;
+                    padding: 5px 10px;
+                    font-size: 12px;
+                }
+                #darkModeButton:hover {
+                    background-color: #444;
+                }
                 QTableWidget {
                     background-color: #333;
                     color: #FFF;
@@ -187,12 +224,13 @@ class GameSaveManager(QMainWindow):
                     padding: 5px;
                 }
             """)
+            self.dark_mode_button.setText("Dark Mode: On")
         self.dark_mode = not self.dark_mode
 
 def main():
     app = QApplication(sys.argv)
     window = GameSaveManager()
-    window.resize(1600, 900)  # Initial size
+    window.resize(1600, 900)  
     window.show()
     sys.exit(app.exec_())
 
